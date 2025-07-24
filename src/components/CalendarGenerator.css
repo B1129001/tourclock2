@@ -1,0 +1,176 @@
+ /* 整體背景與容器 */
+.container {
+  padding: 1rem;
+  min-height: 100vh;
+  background: linear-gradient(to bottom right, #fdfdfd, #f0f4ff);
+  font-family: 'Helvetica Neue', sans-serif;
+}
+
+/* 使用者資訊卡片 */
+.user-card {
+  background: white;
+  padding: 0.75rem 1rem;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+  margin: 1rem auto;
+  justify-content: center;
+  max-width: 90%;
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
+/* 表單與地圖主體排版 */
+.content-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+/* 表單區塊樣式 */
+.form-card {
+  background: #ffffff;
+  padding: 2rem;
+  border-radius: 1.25rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  flex: 1 1 350px;
+  max-width: 500px;
+  box-sizing: border-box;
+}
+
+.form-card label {
+  display: block;
+  font-weight: bold;
+  margin-top: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.form-card input {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.form-card input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
+/* 共用按鈕樣式 */
+.btn {
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: none;
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  font-weight: bold;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  width: 100%;
+}
+
+/* 不同功能按鈕顏色區分 */
+.btn-download {
+  background: #6366f1;
+  color: white;
+}
+.btn-map {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+.btn-copy {
+  background: #fef3c7;
+  color: #b45309;
+}
+.btn-share {
+  background: #86efac;
+  color: #166534;
+}
+.btn-gcal {
+  background: #fca5a5;
+  color: #991b1b;
+}
+
+.btn:hover {
+  opacity: 0.9;
+}
+
+/* 地圖外框 */
+.map-box {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 1.25rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  flex: 1 1 100%;
+  max-width: 800px;
+  box-sizing: border-box;
+}
+
+.map-box h3 {
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 0.75rem;
+}
+
+.map {
+  width: 100%;
+  height: 400px;
+  border-radius: 1rem;
+  border: 1px solid #ddd;
+}
+
+/* 倒數區塊 */
+.countdown {
+  margin-top: 1rem;
+  font-weight: bold;
+  color: #dc2626;
+  text-align: center;
+}
+
+/* 響應式支援：手機直排顯示 */
+@media screen and (max-width: 768px) {
+  .content-wrapper {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .form-card,
+  .map-box {
+    width: 100%;
+    max-width: 100%;
+    padding: 1.25rem;
+  }
+
+  .map {
+    height: 300px;
+  }
+
+  .btn {
+    font-size: 1rem;
+  }
+
+  .user-card {
+    flex-direction: row;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
