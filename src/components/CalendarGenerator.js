@@ -459,7 +459,7 @@ const CalendarGenerator = () => {
 
       <div className="content-wrapper">
         <div className="form-card">
-          <h2>📅 東京澀谷集合活動設定</h2>
+          <h2>📅 集合活動通知</h2>
 
           <div className="form-group">
             <label htmlFor="name">集合名稱</label>
