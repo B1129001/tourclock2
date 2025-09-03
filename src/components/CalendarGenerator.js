@@ -565,12 +565,7 @@ const CalendarGenerator = () => {
             />
           </div>
 
-          {countdown && (
-            <div className={`countdown ${countdownClass}`}>
-              <Clock size={16} />
-              {countdown}
-            </div>
-          )}
+        
 
           <div className="button-grid">
             <button className="btn btn-calendar" onClick={addToDeviceCalendar}>
