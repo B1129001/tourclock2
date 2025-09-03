@@ -438,11 +438,7 @@ const CalendarGenerator = () => {
                   ]
                 }] : [])
               ]},
-              { type:'box', layout:'vertical', backgroundColor: countdownColor === '#6b7280' ? '#f3f4f6' : '#fef2f2',
-                cornerRadius:'md', paddingAll:'md', margin:'md', contents:[
-                  { type:'text', text: countdownText, weight:'bold', size:'md', color:countdownColor, align:'center', wrap:true }
-                ]
-              },
+           
               ...(diff > 0 && diff < 24*60*60*1000 ? [{
                 type:'text', text:'💡 建議提前 10-15 分鐘出發', size:'xs', color:'#6b7280', wrap:true, margin:'sm', align:'center'
               }] : [])
