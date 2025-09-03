@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import liff from '@line/liff';
-import { Calendar, MapPin, Share2, Copy, Clock, Users, Star } from 'lucide-react';
+import { Calendar, MapPin, Share2, Copy, Clock, Star } from 'lucide-react';
 import './CalendarGenerator.css';
 
 const CalendarGenerator = () => {
@@ -21,21 +21,15 @@ const CalendarGenerator = () => {
   const [showResults, setShowResults] = useState(false);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [showQuickPicks, setShowQuickPicks] = useState(false);
+
   const mapRef = useRef(null);
   const markerRef = useRef(null);
   const nameSearchBoxRef = useRef(null);
   const searchBoxRef = useRef(null);
 
-  // —— 澀谷熱門景點（略：與你原本的一樣） ——
-  const shibuyaSpots = [ /* ...你的原始 shibuyaSpots 陣列原封不動貼回... */ 
-    {
-      name: "SHIBUYA SKY (澀谷天空展望台)",
-      address: "〒150-0043 東京都渋谷区道玄坂1丁目2−3 渋谷スカイ",
-      lat: 35.6581,
-      lng: 139.7016,
-      icon: "🌟",
-      category: "展望台"
-    },
+  // —— 澀谷熱門景點 ——
+  const shibuyaSpots = [
+    { name: "SHIBUYA SKY (澀谷天空展望台)", address: "〒150-0043 東京都渋谷区道玄坂1丁目2−3 渋谷スカイ", lat: 35.6581, lng: 139.7016, icon: "🌟", category: "展望台" },
     { name: "澀谷十字路口", address: "〒150-0043 東京都渋谷区道玄坂2丁目1", lat: 35.6598, lng: 139.7006, icon: "🚶‍♂️", category: "名勝" },
     { name: "忠犬八公像", address: "〒150-0043 東京都渋谷区道玄坂2丁目1", lat: 35.6590, lng: 139.7005, icon: "🐕", category: "紀念碑" },
     { name: "澀谷109", address: "〒150-0043 東京都渋谷区道玄坂2丁目29−1", lat: 35.6592, lng: 139.6986, icon: "🛍️", category: "購物" },
@@ -49,11 +43,11 @@ const CalendarGenerator = () => {
     { name: "宮下公園", address: "〒150-0001 東京都渋谷区神宮前6丁目20−10", lat: 35.6696, lng: 139.7015, icon: "🏀", category: "公園" }
   ];
 
-  // 工具：平台偵測
+  // 平台偵測
   const isIOS = () => /iPhone|iPad|iPod/i.test(navigator.userAgent);
   const isAndroid = () => /Android/i.test(navigator.userAgent);
 
-  // 檢查 Google Maps
+  // Google Maps 載入檢查
   const checkGoogleMapsLoaded = () => new Promise((resolve, reject) => {
     if (window.google && window.google.maps) return resolve(true);
     let attempts = 0;
@@ -77,19 +71,23 @@ const CalendarGenerator = () => {
         setIsLiffReady(true);
         if (!liff.isLoggedIn()) liff.login();
         else setUserProfile(await liff.getProfile());
-      } catch (e) { setIsLiffReady(false); }
+      } catch {
+        setIsLiffReady(false);
+      }
     })();
   }, []);
 
-  // 初始化地圖（保留你的原本流程）
+  // 初始化地圖
   useEffect(() => {
     const initializeMap = async () => {
       try {
         await checkGoogleMapsLoaded();
         setMapLoaded(true);
-        const defaultPosition = { lat: 35.6581, lng: 139.7016 };
+        const defaultPosition = { lat: 35.6581, lng: 139.7016 }; // SHIBUYA SKY
         initMap(defaultPosition);
-      } catch (e) { setMapLoaded(false); }
+      } catch {
+        setMapLoaded(false);
+      }
     };
 
     const initMap = (center) => {
@@ -123,7 +121,7 @@ const CalendarGenerator = () => {
         });
       });
 
-      // 地圖搜尋（保留你原本雙重機制）
+      // 地圖搜尋（雙機制）
       const mapSearchElement = document.getElementById('map-search');
       if (mapSearchElement && window.google.maps.places) {
         const searchBox = new window.google.maps.places.SearchBox(mapSearchElement);
@@ -245,14 +243,20 @@ const CalendarGenerator = () => {
     return () => clearInterval(t);
   }, [formData]);
 
-  // === 生成 .ics：含 Asia/Taipei VTIMEZONE，避免時差 ===
+  // === 生成 .ics：含 Asia/Taipei VTIMEZONE、正確 UTC DTSTAMP、VALARM（30 分提醒） ===
   const generateICS = ({ title, address, startLocal, durationMin = 60 }) => {
-    // startLocal: "YYYY-MM-DDTHH:mm"
     const start = new Date(startLocal);
     const end = new Date(start.getTime() + durationMin * 60000);
     const pad = (n) => (n < 10 ? `0${n}` : `${n}`);
+    const fmtUTC = (d) =>
+      `${d.getUTCFullYear()}${pad(d.getUTCMonth()+1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}Z`;
     const fmtLocal = (d) =>
       `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+    const esc = (s='') => String(s)
+      .replace(/\\/g, '\\\\')
+      .replace(/;/g, '\\;')
+      .replace(/,/g, '\\,')
+      .replace(/\r?\n/g, '\\n');
 
     const tzBlock = [
       'BEGIN:VTIMEZONE',
@@ -267,6 +271,9 @@ const CalendarGenerator = () => {
       'END:VTIMEZONE'
     ].join('\r\n');
 
+    const now = new Date();
+    const uid = `${now.getTime()}-${Math.random().toString(36).slice(2)}@tourhub.local`;
+
     return [
       'BEGIN:VCALENDAR',
       'VERSION:2.0',
@@ -275,39 +282,46 @@ const CalendarGenerator = () => {
       'METHOD:PUBLISH',
       tzBlock,
       'BEGIN:VEVENT',
-      `UID:${Date.now()}@tourhub.local`,
-      `DTSTAMP:${fmtLocal(new Date())}Z`,
+      `UID:${uid}`,
+      `DTSTAMP:${fmtUTC(now)}`,
       `DTSTART;TZID=Asia/Taipei:${fmtLocal(start)}`,
       `DTEND;TZID=Asia/Taipei:${fmtLocal(end)}`,
-      `SUMMARY:${title}`,
-      `LOCATION:${address}`,
-      `DESCRIPTION:${title} at ${address}`,
+      `SUMMARY:${esc(title)}`,
+      `LOCATION:${esc(address)}`,
+      `DESCRIPTION:${esc(title)} at ${esc(address)}`,
       'STATUS:CONFIRMED',
+      'BEGIN:VALARM',
+      'ACTION:DISPLAY',
+      'DESCRIPTION:Event reminder',
+      'TRIGGER:-PT30M',
+      'END:VALARM',
       'END:VEVENT',
       'END:VCALENDAR'
     ].join('\r\n');
   };
 
-  // === 單一入口：加入到行事曆（iOS 走 .ics；Android 走 Google Calendar） ===
+  // === 單一入口：加入到行事曆（iOS .ics 外開 Safari；Android Google Calendar） ===
   const addToDeviceCalendar = () => {
     const { date, time, name, address } = formData;
-    if (!date || !time || !address) {
-      alert('請填寫日期、時間和地址');
-      return;
-    }
+    if (!date || !time || !address) { alert('請填寫日期、時間和地址'); return; }
     const title = name || '集合活動';
     const startLocal = `${date}T${time}`;
 
+    const openBlobExternally = (blob) => {
+      const url = URL.createObjectURL(blob);
+      if (typeof liff !== 'undefined' && liff?.isInClient && liff?.openWindow && liff.isInClient()) {
+        liff.openWindow({ url, external: true }); // iOS LINE -> Safari
+      } else {
+        window.location.href = url;
+      }
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    };
+
     if (isIOS()) {
-      // iOS / iPadOS（含 LINE WebView）：直接觸發 .ics 開啟「加入行事曆」
       try {
         const ics = generateICS({ title, address, startLocal });
         const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        // iOS／LINE WebView 對 <a>.click 有時不穩，直接導向成功率較高
-        window.location.href = url;
-        // 清理（延遲避免立刻失效）
-        setTimeout(() => URL.revokeObjectURL(url), 5000);
+        openBlobExternally(blob);
       } catch (e) {
         console.error(e);
         alert('加入行事曆失敗，請稍後重試');
@@ -316,7 +330,6 @@ const CalendarGenerator = () => {
     }
 
     if (isAndroid()) {
-      // ANDROID：優先導向 Google Calendar「建立事件」頁（多數會直接喚起 App）
       try {
         const startDate = new Date(startLocal);
         const endDate = new Date(startDate.getTime() + 60 * 60000);
@@ -331,10 +344,13 @@ const CalendarGenerator = () => {
           output: 'xml'
         });
         const calendarUrl = `https://www.google.com/calendar/render?${params.toString()}`;
-        window.open(calendarUrl, '_blank');
+        if (typeof liff !== 'undefined' && liff?.isInClient && liff?.openWindow && liff.isInClient()) {
+          liff.openWindow({ url: calendarUrl, external: true });
+        } else {
+          window.open(calendarUrl, '_blank');
+        }
       } catch (e) {
         console.error(e);
-        // 退而求其次：給 .ics
         const ics = generateICS({ title, address, startLocal });
         const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
         const url = URL.createObjectURL(blob);
@@ -344,7 +360,7 @@ const CalendarGenerator = () => {
       return;
     }
 
-    // 其他平台：回退 .ics
+    // 其他平台：下載 .ics
     const ics = generateICS({ title, address, startLocal });
     const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
     const url = URL.createObjectURL(blob);
@@ -354,7 +370,7 @@ const CalendarGenerator = () => {
     URL.revokeObjectURL(url);
   };
 
-  // 分享／複製／開地圖（保留原樣）
+  // 複製資訊
   const copyInfo = async () => {
     const { date, time, name, address, participants } = formData;
     if (!date || !time || !address) { alert('請填寫日期、時間和地址'); return; }
@@ -370,6 +386,7 @@ const CalendarGenerator = () => {
     catch { alert('複製失敗，請手動複製'); }
   };
 
+  // 分享到 LINE（Flex）
   const shareInfo = async () => {
     const { date, time, name, address, participants } = formData;
     if (!date || !time || !address) { alert('請填寫日期、時間和地址'); return; }
@@ -459,7 +476,7 @@ const CalendarGenerator = () => {
 
       <div className="content-wrapper">
         <div className="form-card">
-          <h2>📅 集合活動通知</h2>
+          <h2>📅 東京澀谷集合活動設定</h2>
 
           <div className="form-group">
             <label htmlFor="name">集合名稱</label>
@@ -559,7 +576,6 @@ const CalendarGenerator = () => {
             </div>
           )}
 
-          {/* ✅ 單一行事曆按鈕（整合 .ics + Google Calendar） */}
           <div className="button-grid">
             <button className="btn btn-calendar" onClick={addToDeviceCalendar}>
               <Calendar size={16} />
